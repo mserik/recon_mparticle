@@ -1,0 +1,16 @@
+api.idp.st1.mparticle.com
+www.api.st1.mparticle.com
+api.st1.mparticle.com
+jssdks.st1.mparticle.com
+nativesdks.st1.mparticle.com
+api-common.st1.mparticle.com
+scylla-aud-scheduling.st1.mparticle.com
+identity.st1.mparticle.com
+scylla-aud-events.st1.mparticle.com
+www.api-common.st1.mparticle.com
+scylla3.st1.mparticle.com
+gk.st1.mparticle.com
+api.gk.st1.mparticle.com
+api-internal.gk.st1.mparticle.com
+tracking-identity.st1.mparticle.com
+tracking-nativesdks.st1.mparticle.com
