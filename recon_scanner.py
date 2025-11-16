@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Light, non-intrusive reconnaissance scanner for authorized security assessment.
-Performs DNS resolution, basic port checks, and HTTP/HTTPS fingerprinting.
+Performs port scanning, directory busting, and HTTP/HTTPS fingerprinting.
+Skips DNS resolution - directly scans subdomains.
 """
 
 import socket
@@ -35,6 +36,59 @@ HTTP_TIMEOUT = 10
 # Request settings
 MAX_REDIRECTS = 3
 USER_AGENT = 'Mozilla/5.0 (Security Assessment - Authorized)'
+
+# Common paths for directory busting
+COMMON_PATHS = [
+    '/',
+    '/admin',
+    '/administrator',
+    '/api',
+    '/api/v1',
+    '/api/v2',
+    '/login',
+    '/signin',
+    '/auth',
+    '/dashboard',
+    '/console',
+    '/panel',
+    '/config',
+    '/wp-admin',
+    '/phpmyadmin',
+    '/robots.txt',
+    '/sitemap.xml',
+    '/.well-known',
+    '/health',
+    '/healthcheck',
+    '/status',
+    '/metrics',
+    '/actuator',
+    '/swagger',
+    '/swagger-ui',
+    '/api-docs',
+    '/graphql',
+    '/v1',
+    '/v2',
+    '/docs',
+    '/documentation',
+    '/test',
+    '/dev',
+    '/staging',
+    '/backup',
+    '/uploads',
+    '/files',
+    '/static',
+    '/assets',
+    '/js',
+    '/css',
+    '/images',
+    '/debug',
+    '/.git/config',
+    '/.env',
+    '/web.config',
+    '/.htaccess',
+    '/server-status',
+    '/phpinfo.php'
+]
 
 
 def parse_subdomains(filename: str) -> List[str]:
@@ -71,32 +125,74 @@ def resolve_dns(subdomain: str) -> List[str]:
         return []
 
 
-def check_port(ip: str, port: int, timeout: int = TCP_TIMEOUT) -> bool:
-    """Quick TCP connect check for a single port."""
+def check_port(host: str, port: int, timeout: int = TCP_TIMEOUT) -> bool:
+    """Quick TCP connect check for a single port on a hostname."""
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(timeout)
-        result = sock.connect_ex((ip, port))
+        result = sock.connect_ex((host, port))
         sock.close()
         return result == 0
     except Exception:
         return False
 
 
-def scan_ports(subdomain: str, ips: List[str]) -> List[int]:
-    """Scan common ports on the first resolved IP."""
-    if not ips:
-        return []
-
-    # Use first IP for port scanning
-    ip = ips[0]
+def scan_ports(subdomain: str) -> List[int]:
+    """Scan common ports directly on subdomain."""
     open_ports = []
 
     for port in PORTS_TO_SCAN:
-        if check_port(ip, port):
+        if check_port(subdomain, port):
             open_ports.append(port)
+            print(f"    [+] Port {port} open")
 
     return open_ports
+
+
+def directory_bust(subdomain: str, protocol: str = 'https', port: int = None) -> List[Dict]:
+    """Perform directory busting on common paths."""
+    found_paths = []
+
+    # Build base URL
+    if port and port not in [80, 443]:
+        base_url = f"{protocol}://{subdomain}:{port}"
+    else:
+        base_url = f"{protocol}://{subdomain}"
+
+    print(f"    [*] Directory busting {base_url}...")
+
+    for path in COMMON_PATHS:
+        url = base_url + path
+        try:
+            response = requests.get(
+                url,
+                headers={'User-Agent': USER_AGENT},
+                timeout=HTTP_TIMEOUT,
+                allow_redirects=False,  # Don't follow redirects for dir busting
+                verify=False
+            )
+
+            # Consider 200-299 and 401/403 as interesting
+            if response.status_code in range(200, 300) or response.status_code in [401, 403]:
+                size = len(response.content)
+                print(f"    [+] {path} [{response.status_code}] ({size} bytes)")
+                found_paths.append({
+                    'path': path,
+                    'status': response.status_code,
+                    'size': size,
+                    'content_type': response.headers.get('Content-Type', '')
+                })
+        except requests.exceptions.Timeout:
+            continue
+        except requests.exceptions.ConnectionError:
+            continue
+        except Exception:
+            continue
+
+        # Small delay to be polite
+        time.sleep(0.1)
+
+    return found_paths
 
 
 def extract_title(html: str) -> str:
@@ -286,34 +382,15 @@ def scan_web_services(subdomain: str, open_ports: List[int]) -> List[Dict]:
 
 
 def scan_subdomain(subdomain: str) -> Dict:
-    """Complete scan of a single subdomain."""
+    """Complete scan of a single subdomain - port scan and directory bust."""
     print(f"[*] Scanning {subdomain}...")
 
-    # DNS Resolution
-    ips = resolve_dns(subdomain)
-
-    if not ips:
-        return {
-            'subdomain': subdomain,
-            'resolved_ips': '',
-            'open_ports': '',
-            'http_status': '',
-            'final_url': '',
-            'title': '',
-            'server': '',
-            'x_powered_by': '',
-            'tech_guess': '',
-            'endpoint_type': '',
-            'notes': 'DNS resolution failed'
-        }
-
-    # Port scanning
-    open_ports = scan_ports(subdomain, ips)
+    # Port scanning (direct, no DNS resolution)
+    open_ports = scan_ports(subdomain)
 
     if not open_ports:
         return {
             'subdomain': subdomain,
-            'resolved_ips': ', '.join(ips),
             'open_ports': '',
             'http_status': '',
             'final_url': '',
@@ -322,11 +399,26 @@ def scan_subdomain(subdomain: str) -> Dict:
             'x_powered_by': '',
             'tech_guess': '',
             'endpoint_type': '',
+            'found_paths': '',
             'notes': 'No open ports detected'
         }
 
     # Web service fingerprinting
     web_results = scan_web_services(subdomain, open_ports)
+
+    # Directory busting on web ports
+    all_found_paths = []
+    if any(port in WEB_PORTS for port in open_ports):
+        # Try HTTPS first
+        if 443 in open_ports or 8443 in open_ports:
+            port = 443 if 443 in open_ports else 8443
+            found_paths = directory_bust(subdomain, 'https', port if port != 443 else None)
+            all_found_paths.extend(found_paths)
+        # Try HTTP
+        elif 80 in open_ports or 8080 in open_ports:
+            port = 80 if 80 in open_ports else 8080
+            found_paths = directory_bust(subdomain, 'http', port if port != 80 else None)
+            all_found_paths.extend(found_paths)
 
     # Aggregate results
     if web_results:
@@ -346,10 +438,14 @@ def scan_subdomain(subdomain: str) -> Dict:
         notes = classification.get('notes', [])
         if len(web_results) > 1:
             notes.append(f"{len(web_results)} web services detected")
+        if all_found_paths:
+            notes.append(f"{len(all_found_paths)} interesting paths found")
+
+        # Format found paths
+        paths_str = ' | '.join([f"{p['path']}[{p['status']}]" for p in all_found_paths]) if all_found_paths else ''
 
         return {
             'subdomain': subdomain,
-            'resolved_ips': ', '.join(ips),
             'open_ports': ', '.join(map(str, open_ports)),
             'http_status': str(web['status']),
             'final_url': web['final_url'],
@@ -358,18 +454,21 @@ def scan_subdomain(subdomain: str) -> Dict:
             'x_powered_by': tech['powered_by'],
             'tech_guess': ', '.join(tech_parts) if tech_parts else 'Unknown',
             'endpoint_type': classification.get('type', 'Unknown'),
+            'found_paths': paths_str,
             'notes': ' | '.join(notes) if notes else ''
         }
     else:
-        # No web services responded
+        # No web services responded but we might have other ports
         non_web_ports = [p for p in open_ports if p not in WEB_PORTS]
         notes = []
         if non_web_ports:
             notes.append(f"Non-web ports open: {', '.join(map(str, non_web_ports))}")
 
+        # Format found paths even if web probe failed
+        paths_str = ' | '.join([f"{p['path']}[{p['status']}]" for p in all_found_paths]) if all_found_paths else ''
+
         return {
             'subdomain': subdomain,
-            'resolved_ips': ', '.join(ips),
             'open_ports': ', '.join(map(str, open_ports)),
             'http_status': '',
             'final_url': '',
@@ -377,7 +476,8 @@ def scan_subdomain(subdomain: str) -> Dict:
             'server': '',
             'x_powered_by': '',
             'tech_guess': '',
-            'endpoint_type': 'Non-HTTP',
+            'endpoint_type': 'Non-HTTP' if non_web_ports else 'Unknown',
+            'found_paths': paths_str,
             'notes': ' | '.join(notes) if notes else 'Web ports did not respond'
         }
 
@@ -437,20 +537,12 @@ def main():
     print("=" * 70)
     print()
 
-    # DNS failures
-    dns_failed = df[df['resolved_ips'] == '']
-    if len(dns_failed) > 0:
-        print(f"[!] {len(dns_failed)} subdomain(s) failed DNS resolution:")
-        for _, row in dns_failed.iterrows():
-            print(f"    - {row['subdomain']}")
-        print()
-
     # No response hosts
-    no_ports = df[(df['resolved_ips'] != '') & (df['open_ports'] == '')]
+    no_ports = df[df['open_ports'] == '']
     if len(no_ports) > 0:
         print(f"[!] {len(no_ports)} subdomain(s) with no open ports:")
         for _, row in no_ports.iterrows():
-            print(f"    - {row['subdomain']} ({row['resolved_ips']})")
+            print(f"    - {row['subdomain']}")
         print()
 
     # Interesting findings
