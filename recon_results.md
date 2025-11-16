@@ -1,0 +1,26 @@
+# Reconnaissance Results
+
+**Scan Date:** 2025-11-16 03:10:24
+
+**Total Subdomains:** 16
+
+## Findings
+
+| subdomain                               | resolved_ips   | open_ports   | http_status   | final_url   | title   | server   | x_powered_by   | tech_guess   | endpoint_type   | notes                 |
+|:----------------------------------------|:---------------|:-------------|:--------------|:------------|:--------|:---------|:---------------|:-------------|:----------------|:----------------------|
+| api.idp.st1.mparticle.com               |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| www.api.st1.mparticle.com               |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| api.st1.mparticle.com                   |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| jssdks.st1.mparticle.com                |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| nativesdks.st1.mparticle.com            |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| api-common.st1.mparticle.com            |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| scylla-aud-scheduling.st1.mparticle.com |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| identity.st1.mparticle.com              |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| scylla-aud-events.st1.mparticle.com     |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| www.api-common.st1.mparticle.com        |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| scylla3.st1.mparticle.com               |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| gk.st1.mparticle.com                    |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| api.gk.st1.mparticle.com                |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| api-internal.gk.st1.mparticle.com       |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| tracking-identity.st1.mparticle.com     |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
+| tracking-nativesdks.st1.mparticle.com   |                |              |               |             |         |          |                |              |                 | DNS resolution failed |
